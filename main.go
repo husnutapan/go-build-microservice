@@ -1,9 +1,10 @@
 package main
 
 import (
-	"./handler"
 	"context"
 	"fmt"
+	"github.com/gorilla/mux"
+	"go-build-microservice/handler"
 	"log"
 	"net/http"
 	"os"
@@ -13,15 +14,19 @@ import (
 
 func main() {
 	l := log.New(os.Stdout, "product-api", log.LstdFlags)
-	helloHandler := handler.NewHello(l)
-	goodbyeHandler := handler.NewGoodbye(l)
 	productHandler := handler.NewProduct(l)
 
-	sm := http.NewServeMux()
-	sm.Handle("/", helloHandler)
-	sm.Handle("/goodbye", goodbyeHandler)
-	sm.Handle("/product", productHandler)
+	sm := mux.NewRouter()
+	subRouterGet := sm.Methods(http.MethodGet).Subrouter()
+	subRouterGet.HandleFunc("/", productHandler.GetProductList)
 
+	subRouterPut := sm.Methods(http.MethodPut).Subrouter()
+	subRouterPut.HandleFunc("/{id:[0-9]+}", productHandler.UpdateProduct)
+	subRouterPut.Use(productHandler.MiddlewareValidateProduct)
+
+	subRouterPost := sm.Methods(http.MethodPost).Subrouter()
+	subRouterPost.HandleFunc("/", productHandler.AddProduct)
+	subRouterPost.Use(productHandler.MiddlewareValidateProduct)
 	server := &http.Server{
 		Addr:         ":9090",
 		Handler:      sm,

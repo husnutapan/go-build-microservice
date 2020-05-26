@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"../utility"
+	"context"
 	"encoding/json"
+	"github.com/gorilla/mux"
+	"go-build-microservice/utility"
 	"log"
 	"net/http"
-	"regexp"
 	"strconv"
 )
 
@@ -17,29 +18,7 @@ func NewProduct(l *log.Logger) *Product {
 	return &Product{l}
 }
 
-func (p *Product) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == http.MethodGet {
-		p.getProductList(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		p.addProduct(w, r)
-		return
-	}
-
-	if r.Method == http.MethodPut {
-		regex := regexp.MustCompile(`/([0-9]+)`)
-		g := regex.FindAllStringSubmatch(r.URL.Path, -1)
-		id, _ := strconv.Atoi(g[0][1])
-		p.updateProduct(id, w, r)
-		return
-	}
-
-}
-
-func (p *Product) getProductList(w http.ResponseWriter, r *http.Request) {
+func (p *Product) GetProductList(w http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handled GET product Method")
 	products := utility.GetProductList()
 	data, err := json.Marshal(products)
@@ -49,23 +28,36 @@ func (p *Product) getProductList(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-func (p *Product) addProduct(w http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handled POST product Method")
-	newProduct := &utility.Product{}
-	err := newProduct.FromJSON(r.Body)
-	if err != nil {
-		http.Error(w, "Unable marshal json", http.StatusInternalServerError)
-	}
-	utility.AddProduct(newProduct)
+func (p *Product) AddProduct(w http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle POST product Method")
+	product := r.Context().Value(KeyProduct{}).(utility.Product)
+	utility.AddProduct(&product)
 }
 
-func (p *Product) updateProduct(id int, w http.ResponseWriter, r *http.Request) {
-	newProduct := &utility.Product{}
-	err := newProduct.FromJSON(r.Body)
-
+func (p *Product) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		http.Error(w, "Unable marshal json", http.StatusInternalServerError)
+		http.Error(w, "Unable convert int to str", http.StatusBadGateway)
 	}
+	newProduct := r.Context().Value(KeyProduct{}).(utility.Product)
 
-	utility.UpdateProduct(id, newProduct)
+	utility.UpdateProduct(id, &newProduct)
+}
+
+type KeyProduct struct {
+}
+
+func (p Product) MiddlewareValidateProduct(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		product := utility.Product{}
+		err := product.FromJSON(r.Body)
+		if err != nil {
+			http.Error(rw, "Error reading product", http.StatusBadRequest)
+			return
+		}
+		ctx := context.WithValue(r.Context(), KeyProduct{}, product)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(rw, r)
+	})
 }
