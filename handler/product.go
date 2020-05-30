@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"../utility"
 	"encoding/json"
+	"github.com/husnutapan/go-build-microservice/utility"
 	"log"
 	"net/http"
 	"regexp"

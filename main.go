@@ -1,9 +1,9 @@
 package main
 
 import (
-	"./handler"
 	"context"
 	"fmt"
+	"github.com/husnutapan/go-build-microservice/handler"
 	"log"
 	"net/http"
 	"os"
