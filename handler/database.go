@@ -1,9 +1,11 @@
-package utility
+package handler
 
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/husnutapan/go-build-microservice/pojo"
 	"github.com/jinzhu/gorm"
+	"log"
 	"os"
 )
 
@@ -37,5 +39,14 @@ func (svr *ServerInformations) Connection() {
 }
 
 func LoadDatabase(db *gorm.DB) {
-	db.DropTableIfExists()
+	err := db.DropTableIfExists(&pojo.User{}).Error
+
+	if err != nil {
+		fmt.Println("Occur error while dropping table")
+	}
+	err = db.Debug().AutoMigrate(&pojo.User{}).Error
+
+	if err != nil {
+		log.Println("Cannot migrate table")
+	}
 }
