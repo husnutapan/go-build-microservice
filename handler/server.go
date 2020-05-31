@@ -14,4 +14,5 @@ func (svr *ServerInformations) UpServer() {
 func prepareRoutings(svr *ServerInformations) {
 	svr.Router = mux.NewRouter()
 	svr.Router.HandleFunc("/", utility.AddHeaderToJSON(svr.Home)).Methods("GET")
+
 }
