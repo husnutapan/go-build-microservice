@@ -1,8 +1,8 @@
-package handler
+package utility
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/husnutapan/go-build-microservice/utility"
+	handler "github.com/husnutapan/go-build-microservice/handler"
 	"net/http"
 )
 
@@ -13,6 +13,5 @@ func (svr *ServerInformations) UpServer() {
 
 func prepareRoutings(svr *ServerInformations) {
 	svr.Router = mux.NewRouter()
-	svr.Router.HandleFunc("/", utility.AddHeaderToJSON(svr.Home)).Methods("GET")
-
+	svr.Router.HandleFunc("/", AddHeaderToJSON(handler.Home)).Methods("GET")
 }

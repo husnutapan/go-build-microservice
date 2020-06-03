@@ -1,8 +1,10 @@
 package main
 
-import "github.com/husnutapan/go-build-microservice/handler"
+import (
+	"github.com/husnutapan/go-build-microservice/utility"
+)
 
 func main() {
-	var server = handler.ServerInformations{}
+	var server = utility.ServerInformations{}
 	server.UpServer()
 }

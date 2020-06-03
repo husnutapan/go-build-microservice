@@ -1,10 +1,15 @@
 package handler
 
 import (
-	"github.com/husnutapan/go-build-microservice/utility"
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-func (svr *ServerInformations) Home(w http.ResponseWriter, r *http.Request) {
-	utility.ResponseData(w, "This is base endpoint...", success)
+func Home(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(200)
+	err := json.NewEncoder(w).Encode("This is base endpoint...")
+	if err != nil {
+		fmt.Fprintf(w, "%s", err.Error())
+	}
 }
