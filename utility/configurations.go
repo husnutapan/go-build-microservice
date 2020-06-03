@@ -53,6 +53,7 @@ func (svr *ServerInformations) UpServer() {
 func ServerRoutings(svr *ServerInformations) {
 	svr.Router = mux.NewRouter()
 	svr.Router.HandleFunc("/", AddHeaderToJSON(handler.Home)).Methods("GET")
+	svr.Router.HandleFunc("/user/create", AddHeaderToJSON(ValidateToken(handler.SaveUser))).Methods("POST")
 }
 
 //database connection
